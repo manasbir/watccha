@@ -853,6 +853,7 @@ dependencies = [
  "lettre 0.10.3",
  "lettre_email",
  "reqwest",
+ "serde_json",
  "tokio",
 ]
 
