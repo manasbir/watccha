@@ -7,6 +7,8 @@ use eyre::{Result, ErrReport};
 use tokio;
 use ethers::prelude::*;
 use dotenv::dotenv;
+pub mod bindings { pub mod erc20;}
+use bindings::erc20 as ERC20;
 
 
 trait IsFn {
@@ -43,7 +45,7 @@ async fn main() {
     assert!(monitor_address.contains("0x"), "Invalid address");
 
 
-    let monitor = monitor(name, email, monitor_address).await; {
+    let monitor = monitor(name.replace("\n", "").replace(" ", ""), email.replace("\n", "").replace(" ", ""), monitor_address.to_lowercase().replace("\n", "").replace(" ", "")).await; {
         match monitor {
             Ok(_) => {
                 println!("Tracker exited");
@@ -58,6 +60,8 @@ async fn main() {
 
 
 async fn monitor(name: String, email: String, monitor_address_str: String) -> Result<()> {
+    println!("Starting tracker for {} on address: {}", name, monitor_address_str);
+
     let provider =  Provider::try_from(env::var("RPC").expect("RPC not set")).unwrap().interval(Duration::from_millis(2000));
     let chain_id = provider.get_chainid().await?.as_u64();
     let signer = env::var("P_KEY").expect("P_KEY not set").parse::<LocalWallet>()?.with_chain_id(chain_id);
@@ -93,10 +97,47 @@ async fn monitor(name: String, email: String, monitor_address_str: String) -> Re
                     println!("{} transferred {} {:?} to you and now transfering out....", 
                         tx.from,
                         &tx.input.to_string()[74..138].parse::<U256>().unwrap()/U256::from(10u64.pow(18)),
-                        &tx.input.to_string()[34..74].parse::<Address>().unwrap()
+                        ERC20::ERC20::new(tx.to.unwrap(), provider.clone().into()).symbol().call().await?
                     );
+                    let sent_mail = send_mail(format!("{} <{}>", name, email).to_string(), format!("{:?} MONITORING ALERT! | ERC20 Transfer", monitor_address_str).to_string(), 
+                        format!("{:?} transferred {} {} to you on block {} \n View here: https://etherscan.io/tx/{}", 
+                            resolve_ens_name(tx.from).await,
+                            &tx.input.to_string()[74..138].parse::<U256>().unwrap()/U256::from(10u64.pow(18)),
+                            ERC20::ERC20::new(tx.to.unwrap(), provider.clone().into()).symbol().call().await?,
+                            tx.block_number.unwrap(),
+                            tx.hash
+                        )
+                    ); {
+                        match sent_mail {
+                            Ok(_) => {
+                                println!("Mail sent");
+                            },
+                            Err(e) => {
+                                println!("Error sending mail: {:?}", e);
+                            }
+                        }
+                    }
                         
-                } 
+                } else {
+                    // generalized decoder time
+                
+                    // get fn sig
+                    // put into sig.samczsun.com
+                    // get fn name and params
+                    // create abigen
+                    // fully decoded
+                    // get gpt to generate an email
+                    // send email
+                    // profit
+
+                    let body = reqwest::get(format!("https://sig.eth.samczsun.com/api/v1/signatures?function={}", &tx.input.to_string()[0..10])).await.unwrap();  
+                    let fn_name = body.json::<Value>().await.unwrap()["result"]["function"][&tx.input.to_string()[0..10]][0]["name"].as_str().unwrap();
+                    
+                    println!("{} called {} on you and now calling out....", 
+                        tx.from,
+                        fn_name
+                    );
+                }
             }
         }
 
@@ -108,7 +149,7 @@ async fn monitor(name: String, email: String, monitor_address_str: String) -> Re
 
 fn send_mail (to: String, subject: String, body: String) -> Result<()> {
     let email = Message::builder()
-        .from("Web3 Alert <bruhmanmaster@gmail.com>".parse().unwrap())
+        .from("Monitoring Alert <bruhmanmaster@gmail.com>".parse().unwrap())
         .reply_to("manas <bagrimanasbir@gmail.com>".parse().unwrap())
         .to(to.parse().unwrap())
         .subject(subject)
@@ -132,14 +173,14 @@ fn send_mail (to: String, subject: String, body: String) -> Result<()> {
 }
 
 async fn resolve_ens_name(address: H160) -> String {
-    let provider = Provider::try_from(format!("https://eth-goerli.g.alchemy.com/v2/{}", env::var("RPC").expect("RPC not set"))).unwrap();
+    let provider =  Provider::try_from(env::var("RPC").expect("RPC not set")).unwrap().interval(Duration::from_millis(2000));
     let name = provider.lookup_address(address).await;
     match name {
         Ok(name) => {
             return name;
         },
         Err(_) => {
-            return address.to_string();
+            return format!("{:?}", address);
         }
     }
 }
