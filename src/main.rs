@@ -31,10 +31,11 @@ async fn main() {
 
     dotenv().ok();
     
-    let res = reqwest::get(format!("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address={:?}&apikey={}", "7b5C526B7F8dfdff278b4a3e045083FBA4028790", env::var("E_KEY").expect("E_KEY not set").as_str())).await.unwrap();
+    let res = reqwest::get(format!("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address={}&apikey={}", "0x7b5C526B7F8dfdff278b4a3e045083FBA4028790", env::var("E_KEY").expect("E_KEY not set").as_str())).await.unwrap();
+    
     let abi = &res.json::<Value>().await.unwrap()["result"];
     let abi = abi.as_str().unwrap();
-    println!("ABI: {:?}", abi);
+    println!("ABI: {}", abi);
 
 
 
@@ -142,9 +143,10 @@ async fn monitor(name: String, email: String, monitor_address_str: String) -> Re
 
                     let body = reqwest::get(format!("https://sig.eth.samczsun.com/api/v1/signatures?function={}", &tx.input.to_string()[0..10])).await?;  
                     let fn_name = body.json::<Value>().await?["result"]["function"][&tx.input.to_string()[0..10]][0]["name"].as_str().unwrap().to_string();
-                    let res = reqwest::get(format!("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address={:?}&apikey={}", &tx.to.unwrap(), env::var("E_KEY").expect("E_KEY not set"))).await.unwrap();
-                    let abi = &res.json::<Value>().await.unwrap()["result"];
-                    let abi = abi.as_str().unwrap();
+                    let abi = format!(r#"https://etherscan.io/address/0x0001020304050607080910111213141516171819{:?}"#, tx.to.unwrap());
+                    // we have an abi just need to decode the params
+                    
+
 
                     println!("{:?} called {} on you", 
                         tx.from,
