@@ -2,7 +2,7 @@ use ethers::contract::Abigen;
 
 fn main() {
     println!("building!");
-    let erc20 = Abigen::new("ERC20", "./abis/abi.json")
+    let erc20 = Abigen::new("ERC20", "./abis/erc20.json")
         .unwrap()
         .generate()
         .unwrap();
