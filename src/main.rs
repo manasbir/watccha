@@ -174,13 +174,11 @@ fn send_mail (to: String, subject: String, body: String) -> Result<()> {
 
         let creds = Credentials::new("bagrimanasbir@gmail.com".to_owned(), "aapzuovuauhjbamy".to_owned());
 
-    // Open a remote connection to gmail
     let mailer = SmtpTransport::relay("smtp.gmail.com")
         .unwrap()
         .credentials(creds)
         .build();
 
-    // Send the email
     match mailer.send(&email) {
         Ok(_) => return Ok(()),
         Err(e) => return Err(ErrReport::msg(e)),
