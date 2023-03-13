@@ -1,5 +1,5 @@
 use std::env;
-
+use 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let query = &args[1];

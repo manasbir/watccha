@@ -102,6 +102,8 @@ async fn monitor(name: String, email: String, monitor_address_str: String) -> Re
         println!("Block: {:?}, Transactions: {:?}", block, block_txs.transactions.len());
 
         for tx in block_txs.transactions {
+            // do a vec of functions, and if they return !false then we continue
+
             if tx.to == Some(monitor_address) || tx.from == monitor_address {
                 println!("From: {:?}, To: {:?}", tx.from, tx.to.unwrap());
             }
