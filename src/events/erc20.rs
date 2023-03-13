@@ -1,6 +1,6 @@
 use ethers::types::{U256, Transaction};
 use crate::bindings::erc20 as ERC20;
-use crate::utils::*;
+use crate::utils::is_fn::IsFn;
 
 async fn from(tx: Transaction) {
     if tx.input.to_string().to_lowercase().contains(&monitor_address_str.replace("0x", "").to_lowercase()) {

@@ -12,3 +12,9 @@ some ideas for tracking
  - liquidations
  - general DeFi (gmx, aave, uniswap), forks should work automatically
  - calldata decoder with gpt, sig.samczsun, and try etherscan (also will be fun)
+
+ roadmap:
+  - add discord & tg bot
+  - add more event listeners
+  - make better tui
+  - add more commands

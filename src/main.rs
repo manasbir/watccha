@@ -1,8 +1,6 @@
-use std::{env, io};
-use std::time::Duration;
+use std::{env, io, time::Duration};
 use lettre::message::header::ContentType;
-use lettre::transport::smtp::authentication::Credentials;
-use lettre::{Message, SmtpTransport, Transport};
+use lettre::{Message, SmtpTransport, Transport, transport::smtp::authentication::Credentials};
 use eyre::{Result, ErrReport};
 use serde_json::Value;
 use tokio;
@@ -14,7 +12,6 @@ pub mod events;
 pub mod utils;
 use events::*;
 use utils::*;
-
 
 
 #[tokio::main]
@@ -97,30 +94,8 @@ async fn monitor(name: String, email: String, monitor_address_str: String) -> Re
                 println!("From: {:?}, To: {:?}", tx.from, tx.to.unwrap());
             }
             if tx.input.to_string().to_lowercase().contains(&monitor_address_str.replace("0x", "").to_lowercase()) {
-                if tx.input.to_string().is_fn(&"0xa9059cbb") {
-                    println!("{} transferred {} {:?} to you and now transfering out....", 
-                        tx.from,
-                        &tx.input.to_string()[74..138].parse::<U256>().unwrap()/U256::from(10u64.pow(18)),
-                        ERC20::ERC20::new(tx.to.unwrap(), provider.clone().into()).symbol().call().await?
-                    );
-                    let sent_mail = send_mail(format!("{} <{}>", name, email).to_string(), format!("{:?} MONITORING ALERT! | ERC20 Transfer", monitor_address_str).to_string(), 
-                        format!("{:?} transferred {} {} to you on block {} \n View here: https://etherscan.io/tx/{}", 
-                            resolve_ens_name(tx.from).await,
-                            &tx.input.to_string()[74..138].parse::<U256>().unwrap()/U256::from(10u64.pow(18)),
-                            ERC20::ERC20::new(tx.to.unwrap(), provider.clone().into()).symbol().call().await?,
-                            tx.block_number.unwrap(),
-                            tx.hash
-                        )
-                    ); {
-                        match sent_mail {
-                            Ok(_) => {
-                                println!("Mail sent");
-                            },
-                            Err(e) => {
-                                println!("Error sending mail: {:?}", e);
-                            }
-                        }
-                    }
+                if 1 == 1 {
+                    println!("filler!")
                         
                 } else {
                     // generalized decoder time

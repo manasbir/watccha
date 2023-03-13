@@ -1,14 +1,23 @@
-use std::{env, io};
 use toml::{to_string, from_str};
 use ethers::types::{H160, Transaction};
-use tui::{Terminal, backend::CrosstermBackend};
+use std::{io, thread, time::Duration};
+use tui::{
+    backend::CrosstermBackend,
+    widgets::{Widget, Block, Borders},
+    layout::{Layout, Constraint, Direction},
+    Terminal
+};
+use crossterm::{
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
 use eyre::{Result, ErrReport};
 
 struct Config {
     general: General,
     email: Email,
-    address: H160,
-    events: Vec<fn(Transaction, bool) -> Result<String, bool>>
+    events: Vec<Listener>,
 }
 
 struct General {
@@ -22,25 +31,38 @@ struct Email {
     app_email: String,
     app_password: String,
 }
-fn main() {
 
-    let args: Vec<String> = env::args().collect();
-    let query = &args[1];
-    let file_path = &args[2];
+struct Listener {
+    function: fn(Transaction, bool) -> Result<String, bool>,
+    email: bool,
+    address: H160,
+}
+fn main() -> Result<(), io::Error> {
 
-    println!("searching for {} in file {}", query, file_path);
+    enable_raw_mode()?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
 
-    let rpc_url = String::new();
-    let p_key = String::new();
-    let etherscan_key = String::new();
-    let email = String::new();
-    let app_email = String::new();
-    let app_password = String::new();
+    terminal.draw(|f| {
+        let size = f.size();
+        let block = Block::default()
+            .title("Block")
+            .borders(Borders::ALL);
+        f.render_widget(block, size);
+    })?;
 
-    let monitor_address = String::new();
+    thread::sleep(Duration::from_millis(5000));
 
+    // restore terminal
+    disable_raw_mode()?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
+    terminal.show_cursor()?;
 
-    let mut terminal = Terminal::new(CrosstermBackend::new(io::stdout())).unwrap();
-
-
+    Ok(())
 }
