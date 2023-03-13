@@ -19,4 +19,8 @@ tokio = { version = "1.0", features = ["full"] }
 [build-dependencies]
 ethers = "1.5.0"
 
-[bin]
+[[bin]]
+name = "setup"
+path = "./src/setup.rs"
+
+[lib]

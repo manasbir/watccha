@@ -10,6 +10,8 @@ use ethers::prelude::*;
 use dotenv::dotenv;
 pub mod bindings { pub mod erc20;}
 use bindings::erc20 as ERC20;
+use events::*;
+use utils::*;
 
 
 trait IsFn {
@@ -172,7 +174,7 @@ fn send_mail (to: String, subject: String, body: String) -> Result<()> {
         .body(String::from(body))
         .unwrap();
 
-        let creds = Credentials::new("bagrimanasbir@gmail.com".to_owned(), "aapzuovuauhjbamy".to_owned());
+        let creds = Credentials::new("bagrimanasbir@gmail.com".to_owned(), "--".to_owned());
 
     let mailer = SmtpTransport::relay("smtp.gmail.com")
         .unwrap()

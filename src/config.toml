@@ -1,0 +1,12 @@
+rpc_url = "https://example.com/example"
+p_key = "example"
+
+[email]
+app_email = "example@example.com"
+app_password = "example"
+email = "example@example.com"
+
+[address]
+monitor_address = "0x000000000"
+
+[events]

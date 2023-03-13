@@ -1,6 +1,8 @@
-use bindings::erc20 as ERC20;
+use ethers::types::{U256, Transaction};
+use crate::bindings::erc20 as ERC20;
+use crate::utils::*;
 
-async fn from() {
+async fn from(tx: Transaction) {
     if tx.input.to_string().to_lowercase().contains(&monitor_address_str.replace("0x", "").to_lowercase()) {
         if tx.input.to_string().is_fn(&"0xa9059cbb") {
             println!("{} transferred {} {:?} to you and now transfering out....", 
