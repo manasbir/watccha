@@ -1,5 +1,7 @@
+[general]
 rpc_url = "https://example.com/example"
 p_key = "example"
+e_key = "example"
 
 [email]
 app_email = "example@example.com"

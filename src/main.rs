@@ -10,23 +10,12 @@ use ethers::prelude::*;
 use dotenv::dotenv;
 pub mod bindings { pub mod erc20;}
 use bindings::erc20 as ERC20;
+pub mod events;
+pub mod utils;
 use events::*;
 use utils::*;
 
 
-trait IsFn {
-    fn is_fn (&self, fn_sig: &str) -> bool;
-}
-
-impl IsFn for str {
-    fn is_fn(&self, fn_sig: &str) -> bool {
-        if self.to_lowercase().contains(fn_sig) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-}
 
 #[tokio::main]
 async fn main() {
