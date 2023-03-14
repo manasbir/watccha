@@ -8,19 +8,19 @@ edition = "2021"
 [dependencies]
 crossterm = "0.26.1"
 dotenv = "0.15.0"
-ethers = "1.5.0"
+ethers = "2.0.0"
 eyre = "0.6.8"
 lettre = "0.10.3"
 lettre_email = "0.9.4"
 reqwest = "0.11.14"
+serde = "1.0.155"
 serde_json = "1.0.93"
 tokio = { version = "1.0", features = ["full"] }
 toml = "0.7.2"
 tui = "0.19.0"
 
-
 [build-dependencies]
-ethers = "1.5.0"
+ethers = "2.0.0"
 
 [[bin]]
 name = "setup"

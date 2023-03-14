@@ -1,0 +1,19 @@
+[general]
+rpc_url = "https://goerli.infura.io/v3/"
+p_key = "0x"
+etherscan_key = "E_KEY"
+
+[email]
+email = "email"
+app_email = "app_email"
+app_password = "app_password"
+
+[[events]]
+function = "from"
+email = true
+address = "0x7b5c526b7f8dfdff278b4a3e045083fba4028790"
+
+[[events]]
+function = "to"
+email = true
+address = "0x7b5c526b7f8dfdff278b4a3e045083fba4028790"

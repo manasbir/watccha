@@ -63,8 +63,8 @@ async fn monitor(name: String, email: String, monitor_address_str: String) -> Re
 
     let provider =  Provider::try_from(env::var("RPC").expect("RPC not set")).unwrap().interval(Duration::from_millis(2000));
     let chain_id = provider.get_chainid().await?.as_u64();
-    let signer = env::var("P_KEY").expect("P_KEY not set").parse::<LocalWallet>()?.with_chain_id(chain_id);
-    let provider = SignerMiddleware::new(provider, signer);
+    let signer = env::var("P_KEY").expect("P_KEY not set").parse::<LocalWallet>()?;
+    // let provider = SignerMiddleware::new(provider, signer);
     let monitor_address = monitor_address_str.parse::<Address>()?;
 
     let mut stream = provider.watch_blocks().await?;
@@ -89,39 +89,8 @@ async fn monitor(name: String, email: String, monitor_address_str: String) -> Re
 
         for tx in block_txs.transactions {
             // do a vec of functions, and if they return !false then we continue
-
-            if tx.to == Some(monitor_address) || tx.from == monitor_address {
-                println!("From: {:?}, To: {:?}", tx.from, tx.to.unwrap());
-            }
-            if tx.input.to_string().to_lowercase().contains(&monitor_address_str.replace("0x", "").to_lowercase()) {
-                if 1 == 1 {
-                    println!("filler!")
-                        
-                } else {
-                    // generalized decoder time
-                
-                    // get fn sig
-                    // put into sig.samczsun.com
-                    // get fn name and params
-                    // create abigen
-                    // fully decoded
-                    // get gpt to generate an email
-                    // send email
-                    // profit
-
-                    let body = reqwest::get(format!("https://sig.eth.samczsun.com/api/v1/signatures?function={}", &tx.input.to_string()[0..10])).await?;  
-                    let fn_name = body.json::<Value>().await?["result"]["function"][&tx.input.to_string()[0..10]][0]["name"].as_str().unwrap().to_string();
-                    let abi = format!(r#"https://etherscan.io/address/0x0001020304050607080910111213141516171819{:?}"#, tx.to.unwrap());
-                    // we have an abi just need to decode the params
-                    
-
-
-                    println!("{:?} called {} on you", 
-                        tx.from,
-                        fn_name
-                    );
-                }
-            }
+            
+           
         }
 
 
