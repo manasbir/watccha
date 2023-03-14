@@ -1,3 +1,4 @@
+use std::fs;
 use std::{env, io, time::Duration};
 use lettre::message::header::ContentType;
 use lettre::{Message, SmtpTransport, Transport, transport::smtp::authentication::Credentials};
@@ -5,27 +6,30 @@ use eyre::{Result, ErrReport};
 use serde_json::Value;
 use tokio;
 use ethers::prelude::*;
-use dotenv::dotenv;
-pub mod bindings { pub mod erc20;}
-use bindings::erc20 as ERC20;
 pub mod events;
 pub mod utils;
 use events::*;
 use utils::*;
 
+// use clap::{CommandFactory, Parser, Subcommand}; could be what i need
+// add libloading
+
+type fns = fn(Transaction, bool) -> Result<String, bool>;
+
+
+
+
 
 #[tokio::main]
 async fn main() {
 
-    dotenv().ok();
-    
-    let res = reqwest::get(format!("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address={}&apikey={}", "0x7b5C526B7F8dfdff278b4a3e045083FBA4028790", env::var("E_KEY").expect("E_KEY not set").as_str())).await.unwrap();
-    
-    let abi = &res.json::<Value>().await.unwrap()["result"];
-    let abi = abi.as_str().unwrap();
-    println!("ABI: {}", abi);
-
-
+    let toml_str = fs::read_to_string("src/config.toml").unwrap();
+    let config: Value = toml::from_str(&toml_str).unwrap();
+    let fns = config.get("events").unwrap().as_array().unwrap();
+    for functions in fns {
+    println!("{:?}", functions);
+    }
+    println!("{}", events::erc20::from.as_str);
 
 
     println!("What's your name?");
@@ -59,15 +63,20 @@ async fn main() {
 
 
 async fn monitor(name: String, email: String, monitor_address_str: String) -> Result<()> {
+    let toml_str = fs::read_to_string("src/config.toml").unwrap();
+    let config: Value = toml::from_str(&toml_str).unwrap();
+    let provider = Provider::try_from(config.get("general.rpc_url").unwrap().as_str().unwrap()).unwrap().interval(Duration::from_millis(2000));
     println!("Starting tracker for {} on address: {}", name, monitor_address_str);
-
-    let provider =  Provider::try_from(env::var("RPC").expect("RPC not set")).unwrap().interval(Duration::from_millis(2000));
-    let chain_id = provider.get_chainid().await?.as_u64();
-    let signer = env::var("P_KEY").expect("P_KEY not set").parse::<LocalWallet>()?;
     // let provider = SignerMiddleware::new(provider, signer);
-    let monitor_address = monitor_address_str.parse::<Address>()?;
+    let fns = config.get("events").unwrap().as_array().unwrap();
+
+    for function in fns {
+        println!("pizza!")
+    }
 
     let mut stream = provider.watch_blocks().await?;
+
+
 
     while let Some(block) = stream.next().await {
         
@@ -89,6 +98,7 @@ async fn monitor(name: String, email: String, monitor_address_str: String) -> Re
 
         for tx in block_txs.transactions {
             // do a vec of functions, and if they return !false then we continue
+
             
            
         }
