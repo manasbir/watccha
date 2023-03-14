@@ -1,5 +1,5 @@
 use std::fs;
-use ethers::{types::{Transaction, H160, U256}, utils::format_ether};
+use ethers::{types::{Transaction, H160}, utils::format_ether};
 use reqwest::{header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue}, Client};
 use serde_json::json;
 use toml::Value;

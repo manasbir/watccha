@@ -219,15 +219,4 @@ fn send_mail (subject: String, body: String) -> Result<()> {
     }
 }
 
-async fn resolve_ens_name(address: H160) -> String {
-    let provider =  Provider::try_from(env::var("RPC").expect("RPC not set")).unwrap().interval(Duration::from_millis(2000));
-    let name = provider.lookup_address(address).await;
-    match name {
-        Ok(name) => {
-            return name;
-        },
-        Err(_) => {
-            return format!("{:?}", address);
-        }
-    }
-}
+
