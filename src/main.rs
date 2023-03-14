@@ -14,7 +14,6 @@ pub mod bindings {
 pub mod events;
 pub mod utils;
 use events::*;
-use utils::*;
 
 // use clap::{CommandFactory, Parser, Subcommand}; could be what i need
 // add libloading
@@ -41,7 +40,7 @@ async fn main() {
     for f in fns {
         let fn_name = f.get("function").unwrap().as_str().unwrap();
         println!("Adding function: {:?}", f);
-
+/* 
 
         match fn_name {
             "erc20_from" => {
@@ -71,7 +70,7 @@ async fn main() {
             _ => {
                 println!("Invalid function: {}", fn_name);
             }
-        }
+        } */
     }
 
 
@@ -143,8 +142,24 @@ async fn monitor() -> Result<()> {
         for tx in block_txs.transactions {
             // do a vec of functions, and if they return !false then we continue
 
-            events::erc20::from(tx, H160::from_str("")).await;
-            events::erc20::to(tx, H160::zero()).await;
+            let res = events::erc20::from(tx.clone(), H160::from_str("0x9696bc05C4E9B8992059915eA69EF4cDf391116B").unwrap()).await;
+            match res {
+                Ok(res) => {
+                    println!("Found erc20 from: {:?}", res);
+                },
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                }
+            }
+            let res = events::erc20::to(tx.clone(), H160::from_str("0x9696bc05C4E9B8992059915eA69EF4cDf391116B").unwrap()).await;
+            match res {
+                Ok(res) => {
+                    println!("Found erc20 from: {:?}", res);
+                },
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                }
+            }
             
            
         }
@@ -155,7 +170,11 @@ async fn monitor() -> Result<()> {
     Ok(())
 }   
 
-fn send_mail (to: String, subject: String, body: String) -> Result<()> {
+fn send_mail (subject: String, body: String) -> Result<()> {
+    let toml_str = fs::read_to_string("src/config.toml").unwrap();
+    let config: Value = toml::from_str(&toml_str).unwrap();
+    let to = config.get("general.email").unwrap().as_str().unwrap();
+
     let email = Message::builder()
         .from("Monitoring Alert <bruhmanmaster@gmail.com>".parse().unwrap())
         .reply_to("manas <bagrimanasbir@gmail.com>".parse().unwrap())
