@@ -1,6 +1,3 @@
-pub mod erc20 {
-    pub fn from() {
-    }
-    pub fn to() {
-    }
-}
+pub mod erc20;
+
+pub mod generalized;

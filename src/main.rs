@@ -6,6 +6,9 @@ use eyre::{Result, ErrReport};
 use serde_json::Value;
 use tokio;
 use ethers::prelude::*;
+pub mod bindings {
+    pub mod erc20;
+}
 pub mod events;
 pub mod utils;
 use events::*;
@@ -14,8 +17,14 @@ use utils::*;
 // use clap::{CommandFactory, Parser, Subcommand}; could be what i need
 // add libloading
 
-type fns = fn(Transaction, bool) -> Result<String, bool>;
+type listener_fn = fn(Transaction) -> Result<String,bool>;
 
+struct Event {
+    name: String,
+    email: bool,
+    address: H160,
+    function: fn(Transaction, H160) -> Result<String,bool>,
+}
 
 
 
@@ -25,30 +34,52 @@ async fn main() {
 
     let toml_str = fs::read_to_string("src/config.toml").unwrap();
     let config: Value = toml::from_str(&toml_str).unwrap();
+
     let fns = config.get("events").unwrap().as_array().unwrap();
-    for functions in fns {
-    println!("{:?}", functions);
+    let mut functions: Vec<Event> = Vec::new();
+
+    for f in fns {
+        let fn_name = f.get("function").unwrap().as_str().unwrap();
+        println!("Adding function: {:?}", f);
+
+        let event1_fn = |tx: Transaction| -> Result<String, bool> {
+            // implementation of event 1 function
+            Ok("event 1 function".to_string())
+        };
+
+        match fn_name {
+            "erc20_from" => {
+                functions.push(Event {
+                    name: "erc20_from".to_string(),
+                    email: f.get("email").unwrap().as_bool().unwrap(),
+                    address: f.get("address").unwrap().as_str().unwrap().parse().unwrap(),
+                    function: events::erc20::from,
+                });
+            },
+            "erc20_to" => {
+                functions.push(Event {
+                    name: "erc20_to".to_string(),
+                    email: f.get("email").unwrap().as_bool().unwrap(),
+                    address: f.get("address").unwrap().as_str().unwrap().parse().unwrap(),
+                    function: events::erc20::to,
+                });
+            },
+            "generalized" => {
+                /* functions.push(Event {
+                    name: "generalized".to_string(),
+                    email: f.get("email").unwrap().as_bool().unwrap(),
+                    address: f.get("address").unwrap().as_str().unwrap().parse().unwrap(),
+                    function: events::generalized::generalized,
+                }); */
+            },
+            _ => {
+                println!("Invalid function: {}", fn_name);
+            }
+        }
     }
-    println!("{}", events::erc20::from.as_str);
 
 
-    println!("What's your name?");
-    let mut name = String::new();
-    io::stdin().read_line(&mut name).expect("failed to readline");
-
-
-    println!("What's your email?");
-    let mut email = String::new();
-    io::stdin().read_line(&mut email).expect("failed to readline");
-    assert!(email.contains("@"), "Invalid email");
-
-    println!("What's the address you want to monitor?");
-    let mut monitor_address = String::new();
-    io::stdin().read_line(&mut monitor_address).expect("failed to readline");
-    assert!(monitor_address.contains("0x"), "Invalid address");
-
-
-    let monitor = monitor(name.replace("\n", "").replace(" ", ""), email.replace("\n", "").replace(" ", ""), monitor_address.to_lowercase().replace("\n", "").replace(" ", "")).await; {
+    let monitor = monitor().await; {
         match monitor {
             Ok(_) => {
                 println!("Tracker exited");
@@ -62,16 +93,33 @@ async fn main() {
 }
 
 
-async fn monitor(name: String, email: String, monitor_address_str: String) -> Result<()> {
+async fn monitor() -> Result<()> {
     let toml_str = fs::read_to_string("src/config.toml").unwrap();
     let config: Value = toml::from_str(&toml_str).unwrap();
     let provider = Provider::try_from(config.get("general.rpc_url").unwrap().as_str().unwrap()).unwrap().interval(Duration::from_millis(2000));
-    println!("Starting tracker for {} on address: {}", name, monitor_address_str);
     // let provider = SignerMiddleware::new(provider, signer);
+    
+    
     let fns = config.get("events").unwrap().as_array().unwrap();
+    let mut functions: Vec<Event> = Vec::new();
 
-    for function in fns {
-        println!("pizza!")
+    for f in fns {
+        let f = f.as_str().unwrap();
+        println!("Adding function: {}", f);
+        match f {
+            "erc20_from" => {
+
+            },
+            "erc20_to" => {
+                // functions.push(utils::erc20::to);
+            },
+            "generalized" => {
+                // functions.push(utils::erc20::to);
+            },
+            _ => {
+                println!("Invalid function: {}", f);
+            }
+        }
     }
 
     let mut stream = provider.watch_blocks().await?;

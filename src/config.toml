@@ -9,11 +9,11 @@ app_email = "app_email"
 app_password = "app_password"
 
 [[events]]
-function = "from"
+function = "erc20_from"
 email = true
 address = "0x7b5c526b7f8dfdff278b4a3e045083fba4028790"
 
 [[events]]
-function = "to"
+function = "erc20_to"
 email = true
 address = "0x7b5c526b7f8dfdff278b4a3e045083fba4028790"
