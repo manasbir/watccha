@@ -18,3 +18,4 @@ some ideas for tracking
   - add more event listeners
   - make better tui
   - add more commands
+  - block list (dont decode spam tx things)

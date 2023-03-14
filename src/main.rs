@@ -5,7 +5,7 @@ use std::{env, io, time::Duration};
 use lettre::message::header::ContentType;
 use lettre::{Message, SmtpTransport, Transport, transport::smtp::authentication::Credentials};
 use eyre::{Result, ErrReport};
-use serde_json::Value;
+use toml::Value;
 use tokio;
 use ethers::prelude::*;
 pub mod bindings {
@@ -31,8 +31,8 @@ struct Event {
 #[tokio::main]
 async fn main() {
 
-    let toml_str = fs::read_to_string("src/config.toml").unwrap();
-    let config: Value = toml::from_str(&toml_str).unwrap();
+    let toml_str = fs::read_to_string("src/config.toml").expect("Failed to read file");
+    let config: Value = toml_str.parse::<Value>().expect("Failed to parse TOML");
 
     let fns = config.get("events").unwrap().as_array().unwrap();
     let mut functions: Vec<Event> = Vec::new();
@@ -91,16 +91,30 @@ async fn main() {
 async fn monitor() -> Result<()> {
     let toml_str = fs::read_to_string("src/config.toml").unwrap();
     let config: Value = toml::from_str(&toml_str).unwrap();
-    let provider = Provider::try_from(config.get("general.rpc_url").unwrap().as_str().unwrap()).unwrap().interval(Duration::from_millis(2000));
+    let provider = Provider::try_from(config["general"]["rpc_url"].as_str().unwrap()).unwrap().interval(Duration::from_millis(2000));
     // let provider = SignerMiddleware::new(provider, signer);
+
+
+
+    let latest_block = provider.get_block_number().await?;
+    let block_txs = provider.get_block_with_txs(latest_block).await.unwrap().unwrap();
+    let tx = block_txs.transactions[0].clone();
+
+    let test = events::generalized::decoder(tx.clone(), tx.from).await;
+    match test {
+        Ok(res) => {
+            println!("Test: {:?}", res);
+        },
+        Err(e) => {
+            println!("Error: {:?}", e);
+        }
+    }
     
-    
-    let fns = config.get("events").unwrap().as_array().unwrap();
+    let fns = config["events"].as_array().unwrap();
     let mut functions: Vec<Event> = Vec::new();
 
     for f in fns {
-        let f = f.as_str().unwrap();
-        println!("Adding function: {}", f);
+        let f = f["function"].as_str().unwrap();
         match f {
             "erc20_from" => {
 
@@ -145,7 +159,7 @@ async fn monitor() -> Result<()> {
             let res = events::erc20::from(tx.clone(), H160::from_str("0x9696bc05C4E9B8992059915eA69EF4cDf391116B").unwrap()).await;
             match res {
                 Ok(res) => {
-                    println!("Found erc20 from: {:?}", res);
+                    send_mail("ERC20 Transfer".to_string(), res).unwrap();
                 },
                 Err(e) => {
                     println!("Error: {:?}", e);
@@ -154,13 +168,21 @@ async fn monitor() -> Result<()> {
             let res = events::erc20::to(tx.clone(), H160::from_str("0x9696bc05C4E9B8992059915eA69EF4cDf391116B").unwrap()).await;
             match res {
                 Ok(res) => {
-                    println!("Found erc20 from: {:?}", res);
+                    send_mail("ERC20 Transfer".to_string(), res).unwrap();
                 },
                 Err(e) => {
                     println!("Error: {:?}", e);
                 }
             }
-            
+            let res = events::generalized::decoder(tx.clone(), H160::from_str("0x9696bc05C4E9B8992059915eA69EF4cDf391116B").unwrap()).await;
+            match res {
+                Ok(res) => {
+                    send_mail("Generalized Transfer".to_string(), res).unwrap();
+                },
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                }
+            }
            
         }
 
@@ -184,7 +206,7 @@ fn send_mail (subject: String, body: String) -> Result<()> {
         .body(String::from(body))
         .unwrap();
 
-        let creds = Credentials::new("bagrimanasbir@gmail.com".to_owned(), "--".to_owned());
+        let creds = Credentials::new("bagrimanasbir@gmail.com".to_owned(), config.get("general.app_password").unwrap().as_str().unwrap() .to_owned());
 
     let mailer = SmtpTransport::relay("smtp.gmail.com")
         .unwrap()
