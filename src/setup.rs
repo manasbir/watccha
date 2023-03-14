@@ -20,6 +20,9 @@ use crossterm::{
 use eyre::{Result, ErrReport};
 use serde::{Serialize, Deserialize};
 pub mod events;
+pub mod bindings {
+    pub mod erc20;
+}
 
 #[derive(Debug, Serialize)]
 

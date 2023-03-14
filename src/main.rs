@@ -1,4 +1,6 @@
 use std::fs;
+use std::future::Future;
+use std::str::FromStr;
 use std::{env, io, time::Duration};
 use lettre::message::header::ContentType;
 use lettre::{Message, SmtpTransport, Transport, transport::smtp::authentication::Credentials};
@@ -17,13 +19,11 @@ use utils::*;
 // use clap::{CommandFactory, Parser, Subcommand}; could be what i need
 // add libloading
 
-type listener_fn = fn(Transaction) -> Result<String,bool>;
-
 struct Event {
     name: String,
     email: bool,
     address: H160,
-    function: fn(Transaction, H160) -> Result<String,bool>,
+    function: fn(Transaction, H160) -> dyn Future<Output = Result<String, bool>>,
 }
 
 
@@ -42,10 +42,6 @@ async fn main() {
         let fn_name = f.get("function").unwrap().as_str().unwrap();
         println!("Adding function: {:?}", f);
 
-        let event1_fn = |tx: Transaction| -> Result<String, bool> {
-            // implementation of event 1 function
-            Ok("event 1 function".to_string())
-        };
 
         match fn_name {
             "erc20_from" => {
@@ -147,6 +143,8 @@ async fn monitor() -> Result<()> {
         for tx in block_txs.transactions {
             // do a vec of functions, and if they return !false then we continue
 
+            events::erc20::from(tx, H160::from_str("")).await;
+            events::erc20::to(tx, H160::zero()).await;
             
            
         }
